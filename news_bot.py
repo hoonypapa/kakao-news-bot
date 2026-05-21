@@ -14,7 +14,8 @@ KAKAO_MEMO_URL = "https://kapi.kakao.com/v2/api/talk/memo/default/send"
 # 원하는 RSS 주소로 바꾸거나, GitHub의 FEEDS 변수로 덮어쓸 수 있습니다.
 # (쉼표로 여러 개 지정 가능)
 DEFAULT_FEEDS = [
-    "https://news.google.com/rss?hl=ko&gl=KR&ceid=KR:ko",  # 구글 뉴스 한국 주요뉴스
+    "https://www.aitimes.com/rss/allArticle.xml",  # AI타임스 (AI 전문)
+    "https://www.aitimes.kr/rss/allArticle.xml",   # 인공지능신문 (AI 전문)
 ]
 
 # 리스트 항목에 썸네일이 없을 때 사용할 기본 이미지. 본인 이미지 주소로 바꿔도 됩니다.
@@ -106,8 +107,8 @@ def send_list(access_token, items):
             {
                 "title": "전체 뉴스 보기",
                 "link": {
-                    "web_url": "https://news.google.com/?hl=ko&gl=KR&ceid=KR:ko",
-                    "mobile_web_url": "https://news.google.com/?hl=ko&gl=KR&ceid=KR:ko",
+                    "web_url": "https://www.aitimes.com",
+                    "mobile_web_url": "https://www.aitimes.com",
                 },
             }
         ],
