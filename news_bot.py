@@ -11,11 +11,25 @@ import requests
 KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token"
 KAKAO_MEMO_URL = "https://kapi.kakao.com/v2/api/talk/memo/default/send"
 
-# 원하는 RSS 주소로 바꾸거나, GitHub의 FEEDS 변수로 덮어쓸 수 있습니다.
-# (쉼표로 여러 개 지정 가능)
-DEFAULT_FEEDS = [
-    "https://www.aitimes.com/rss/allArticle.xml",  # AI타임스 (AI 전문)
-    "https://www.aitimes.kr/rss/allArticle.xml",   # 인공지능신문 (AI 전문)
+# 주제별로 각각 한 통씩 카카오톡 메시지를 보냅니다.
+# header: 메시지 제목, feeds: RSS 주소(여러 개 가능), button_url: 하단 버튼 링크
+# (링크가 모바일에서 열리려면 해당 도메인이 카카오 콘솔 '웹 도메인'에 등록돼 있어야 함)
+TOPICS = [
+    {
+        "header": "🤖 오늘의 AI 뉴스",
+        "feeds": [
+            "https://www.aitimes.com/rss/allArticle.xml",  # AI타임스
+            "https://www.aitimes.kr/rss/allArticle.xml",   # 인공지능신문
+        ],
+        "button_url": "https://www.aitimes.com",
+    },
+    {
+        "header": "💰 오늘의 경제 뉴스",
+        "feeds": [
+            "https://www.yna.co.kr/rss/economy.xml",  # 연합뉴스 경제
+        ],
+        "button_url": "https://www.yna.co.kr/economy/all",
+    },
 ]
 
 # 리스트 항목에 썸네일이 없을 때 사용할 기본 이미지. 본인 이미지 주소로 바꿔도 됩니다.
@@ -82,7 +96,7 @@ def fetch_news(feeds, per_feed, fallback_image):
     return items
 
 
-def send_list(access_token, items):
+def send_list(access_token, items, header_title, button_url):
     today = datetime.datetime.now().strftime("%m/%d")
     contents = [
         {
@@ -97,7 +111,7 @@ def send_list(access_token, items):
     ]
     template = {
         "object_type": "list",
-        "header_title": f"📰 오늘의 주요 뉴스 ({today})",
+        "header_title": f"{header_title} ({today})",
         "header_link": {
             "web_url": items[0]["link"],
             "mobile_web_url": items[0]["link"],
@@ -107,8 +121,8 @@ def send_list(access_token, items):
             {
                 "title": "전체 뉴스 보기",
                 "link": {
-                    "web_url": "https://www.aitimes.com",
-                    "mobile_web_url": "https://www.aitimes.com",
+                    "web_url": button_url,
+                    "mobile_web_url": button_url,
                 },
             }
         ],
@@ -129,27 +143,21 @@ def main():
     rest_api_key = os.environ["KAKAO_REST_API_KEY"]
     refresh_token = os.environ["KAKAO_REFRESH_TOKEN"]
     client_secret = os.environ.get("KAKAO_CLIENT_SECRET")
-    feeds_env = os.environ.get("FEEDS", "").strip()
-    feeds = (
-        [u.strip() for u in feeds_env.split(",") if u.strip()]
-        if feeds_env
-        else DEFAULT_FEEDS
-    )
     per_feed = int(os.environ.get("PER_FEED") or "5")
     list_max = int(os.environ.get("LIST_MAX") or "5")
     fallback_image = os.environ.get("DEFAULT_IMAGE_URL") or DEFAULT_IMAGE_URL
 
     token = get_access_token(rest_api_key, refresh_token, client_secret)
-    items = fetch_news(feeds, per_feed, fallback_image)
-    if not items:
-        print("가져온 뉴스가 없습니다. RSS 주소를 확인하세요.")
-        return
-
-    items = items[:list_max]  # 리스트 항목 수 제한 (카카오 상한 대응)
-    send_list(token, items)
-    print(f"전송 완료: {len(items)}건")
-    for it in items:
-        print(" -", it["title"])
+    for topic in TOPICS:
+        items = fetch_news(topic["feeds"], per_feed, fallback_image)[:list_max]
+        if not items:
+            print(f"[{topic['header']}] 가져온 뉴스가 없습니다.")
+            continue
+        send_list(token, items, topic["header"], topic["button_url"])
+        print(f"[{topic['header']}] 전송 완료: {len(items)}건")
+        for it in items:
+            print("  -", it["title"])
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
