@@ -23,6 +23,7 @@ jobs:
         env:
           KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
           KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
           FEEDS: ${{ vars.FEEDS }}
           PER_FEED: ${{ vars.PER_FEED }}
           LIST_MAX: ${{ vars.LIST_MAX }}

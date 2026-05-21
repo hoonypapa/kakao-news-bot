@@ -21,16 +21,15 @@ DEFAULT_FEEDS = [
 DEFAULT_IMAGE_URL = "https://dummyimage.com/400x200/2b6cb0/ffffff.png&text=NEWS"
 
 
-def get_access_token(rest_api_key, refresh_token):
-    resp = requests.post(
-        KAKAO_TOKEN_URL,
-        data={
-            "grant_type": "refresh_token",
-            "client_id": rest_api_key,
-            "refresh_token": refresh_token,
-        },
-        timeout=10,
-    )
+def get_access_token(rest_api_key, refresh_token, client_secret=None):
+    data = {
+        "grant_type": "refresh_token",
+        "client_id": rest_api_key,
+        "refresh_token": refresh_token,
+    }
+    if client_secret:
+        data["client_secret"] = client_secret
+    resp = requests.post(KAKAO_TOKEN_URL, data=data, timeout=10)
     resp.raise_for_status()
     data = resp.json()
     # refresh_token은 만료가 1개월 미만으로 남으면 새로 발급됩니다.
@@ -128,6 +127,7 @@ def send_list(access_token, items):
 def main():
     rest_api_key = os.environ["KAKAO_REST_API_KEY"]
     refresh_token = os.environ["KAKAO_REFRESH_TOKEN"]
+    client_secret = os.environ.get("KAKAO_CLIENT_SECRET")
     feeds_env = os.environ.get("FEEDS", "").strip()
     feeds = (
         [u.strip() for u in feeds_env.split(",") if u.strip()]
@@ -138,7 +138,7 @@ def main():
     list_max = int(os.environ.get("LIST_MAX", "5"))
     fallback_image = os.environ.get("DEFAULT_IMAGE_URL", DEFAULT_IMAGE_URL)
 
-    token = get_access_token(rest_api_key, refresh_token)
+    token = get_access_token(rest_api_key, refresh_token, client_secret)
     items = fetch_news(feeds, per_feed, fallback_image)
     if not items:
         print("가져온 뉴스가 없습니다. RSS 주소를 확인하세요.")
