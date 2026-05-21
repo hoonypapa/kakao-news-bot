@@ -1,0 +1,30 @@
+name: Daily Kakao News
+
+on:
+  schedule:
+    # cron은 UTC 기준. 08:00 KST = 23:00 UTC (전날)
+    - cron: "0 23 * * *"
+  workflow_dispatch: {}  # 수동 실행 버튼
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send news to KakaoTalk
+        env:
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+          KAKAO_REFRESH_TOKEN: ${{ secrets.KAKAO_REFRESH_TOKEN }}
+          FEEDS: ${{ vars.FEEDS }}
+          PER_FEED: ${{ vars.PER_FEED }}
+          LIST_MAX: ${{ vars.LIST_MAX }}
+          DEFAULT_IMAGE_URL: ${{ vars.DEFAULT_IMAGE_URL }}
+        run: python news_bot.py
