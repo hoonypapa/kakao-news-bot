@@ -134,9 +134,9 @@ def main():
         if feeds_env
         else DEFAULT_FEEDS
     )
-    per_feed = int(os.environ.get("PER_FEED", "5"))
-    list_max = int(os.environ.get("LIST_MAX", "5"))
-    fallback_image = os.environ.get("DEFAULT_IMAGE_URL", DEFAULT_IMAGE_URL)
+    per_feed = int(os.environ.get("PER_FEED") or "5")
+    list_max = int(os.environ.get("LIST_MAX") or "5")
+    fallback_image = os.environ.get("DEFAULT_IMAGE_URL") or DEFAULT_IMAGE_URL
 
     token = get_access_token(rest_api_key, refresh_token, client_secret)
     items = fetch_news(feeds, per_feed, fallback_image)
